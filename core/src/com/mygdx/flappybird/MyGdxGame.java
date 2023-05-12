@@ -36,6 +36,8 @@ public class  MyGdxGame extends ApplicationAdapter {
 	Circle circuloMoeda;
 	Rectangle retanguloCanoCima;
 	Rectangle retanguloCanoBaixo;
+	Rectangle retanguloChao;
+	Rectangle retanguloTopo;
 
 	float larguraDispositivo;
 	float alturaDispositivo;
@@ -47,6 +49,10 @@ public class  MyGdxGame extends ApplicationAdapter {
 	float posicaoCanoVertical;
 	float posicaoMoedaVertical;
 	float espacoEntreCanos;
+	float chaoMorteHorizontal;
+	float topoMorteHorizontal;
+	float chaoMorteVertical;
+	float topoMorteVertical;
 	Random random;
 	int pontos = 0;
 	int pontuacaoMaxima = 0;
@@ -72,6 +78,7 @@ public class  MyGdxGame extends ApplicationAdapter {
 	Viewport viewport;
 	final float VIRTUAL_WIDTH = 720;
 	final float VIRTUAL_HEIGHT = 1280;
+	public void ApplicationAdapter(){}
 
 
 	@Override
@@ -80,8 +87,7 @@ public class  MyGdxGame extends ApplicationAdapter {
 		inicializarTexturas();
 		inicializaObjetos();
 		randomNum = Math.random();
-
-		if (randomNum < 0.2) {
+		if (randomNum < 0.4) {
 			coinIndex = 0;}
 		else {
 			coinIndex = 1;
@@ -125,6 +131,9 @@ public class  MyGdxGame extends ApplicationAdapter {
 		posicaoMoedaVertical = alturaDispositivo/2;
 		posicaoMoedaHorizontal = larguraDispositivo;
 		posicaoCanoHorizontal = larguraDispositivo;
+		topoMorteVertical = alturaDispositivo;
+		topoMorteHorizontal = larguraDispositivo/2;
+		chaoMorteVertical = alturaDispositivo;
 		espacoEntreCanos = 350;
 
 		textoPontuacao = new BitmapFont();
@@ -144,6 +153,8 @@ public class  MyGdxGame extends ApplicationAdapter {
 		circuloMoeda = new Circle();
 		retanguloCanoCima = new Rectangle();
 		retanguloCanoBaixo = new Rectangle();
+		retanguloTopo = new Rectangle();
+		retanguloChao = new Rectangle();
 
 		somVoando = Gdx.audio.newSound(Gdx.files.internal("som_asa.wav"));
 		somColisao = Gdx.audio.newSound(Gdx.files.internal("som_batida.wav"));
@@ -205,6 +216,7 @@ public class  MyGdxGame extends ApplicationAdapter {
 				posicaoHorizontalPassaro = 0;
 				posicaoInicialVerticalPassaro = alturaDispositivo/2;
 				posicaoCanoHorizontal = larguraDispositivo;
+				espacoEntreCanos = 350;
 			}
 		}
 	}
@@ -229,11 +241,19 @@ public class  MyGdxGame extends ApplicationAdapter {
 				posicaoCanoHorizontal, alturaDispositivo / 2 + espacoEntreCanos / 2 + posicaoCanoVertical,
 				canoTopo.getWidth(), canoTopo.getHeight()
 		);
+		retanguloTopo.set(
+				topoMorteHorizontal - 300, topoMorteVertical + 100, larguraDispositivo, 300
+		);
+		retanguloChao.set(
+				topoMorteHorizontal - 300, chaoMorteVertical - (chaoMorteVertical -1), larguraDispositivo, 1
+		);
 		randomNum = Math.random();
-		boolean collidedPipeTop = Intersector.overlaps(circuloPassaro, retanguloCanoCima);
-		boolean collidedPipeDown = Intersector.overlaps(circuloPassaro, retanguloCanoBaixo);
-		boolean collidedCoin = Intersector.overlaps(circuloPassaro, circuloMoeda);
-		if(collidedCoin){
+		boolean collidedCanoTopo = Intersector.overlaps(circuloPassaro, retanguloCanoCima);
+		boolean collidedCanoBaixo = Intersector.overlaps(circuloPassaro, retanguloCanoBaixo);
+		boolean collidedMoeda = Intersector.overlaps(circuloPassaro, circuloMoeda);
+		boolean collidedMorte = Intersector.overlaps(circuloPassaro, retanguloTopo);
+		boolean collidedMorte2 = Intersector.overlaps(circuloPassaro, retanguloChao);
+		if(collidedMoeda){
 			if(pontuacao == moeda[0]){
 				pontos = pontos + 10;
 			}
@@ -249,11 +269,17 @@ public class  MyGdxGame extends ApplicationAdapter {
 			}
 			posicaoMoedaHorizontal = -alturaDispositivo;
 		}
-		if (collidedPipeTop || collidedPipeDown){
+		if (collidedCanoTopo || collidedCanoBaixo){
 			if (estadoJogo == 1){
 				somColisao.play();
 				estadoJogo = 2;
 			}
+		}
+		if(collidedMorte){
+			estadoJogo = 2;
+		}
+		if(collidedMorte2){
+			estadoJogo = 2;
 		}
 	}
 
@@ -286,10 +312,10 @@ public class  MyGdxGame extends ApplicationAdapter {
 		}
 
 		if(estadoJogo == 0) {
-			batch.draw(startLogo, larguraDispositivo/2 - startLogo.getWidth()/2,
+			batch.draw(startLogo, larguraDispositivo / 2 - startLogo.getWidth() / 2,
 					900);
-			batch.draw(startTexto, larguraDispositivo/2 - startTexto.getWidth()/2,
-					alturaDispositivo/8);
+			batch.draw(startTexto, larguraDispositivo / 2 - startTexto.getWidth() / 2,
+					alturaDispositivo / 8);
 		}
 		batch.end();
 	}
@@ -300,6 +326,9 @@ public class  MyGdxGame extends ApplicationAdapter {
 				pontos++;
 				passouCano = true;
 				somPontuacao.play();
+				if (pontos >= 20){
+					espacoEntreCanos = 280;
+				}
 			}
 		}
 
